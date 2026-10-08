@@ -61,7 +61,7 @@ import 'package:flutter/material.dart';
 /// true  → run inside the device harness (desktop or web: -d chrome / -d windows).
 /// false → run the bare app on an emulator or a real phone.
 const bool kLabHarness = true;
-
+const double kTabletBreakpoint = 600;
 void main() => runApp(kLabHarness ? const LabHarness() : const Lab04App());
 
 // -----------------------------------------------------------------------------
@@ -98,14 +98,47 @@ const List<String> kCategories = [
 ];
 
 const List<MenuItem> kMenu = [
-  MenuItem(id: 'm1', name: 'Nasi Goreng Spesial', category: 'Makanan', price: 18000, promo: true),
+  MenuItem(
+    id: 'm1',
+    name: 'Nasi Goreng Spesial',
+    category: 'Makanan',
+    price: 18000,
+    promo: true,
+  ),
   MenuItem(id: 'm2', name: 'Mie Ayam Bakso', category: 'Makanan', price: 15000),
-  MenuItem(id: 'm3', name: 'Sate Ayam (10 tusuk)', category: 'Makanan', price: 25000),
-  MenuItem(id: 'm4', name: 'Ayam Geprek Sambal Matah', category: 'Makanan', price: 20000, promo: true),
-  MenuItem(id: 'm5', name: 'Pisang Goreng Keju', category: 'Camilan', price: 12000),
+  MenuItem(
+    id: 'm3',
+    name: 'Sate Ayam (10 tusuk)',
+    category: 'Makanan',
+    price: 25000,
+  ),
+  MenuItem(
+    id: 'm4',
+    name: 'Ayam Geprek Sambal Matah',
+    category: 'Makanan',
+    price: 20000,
+    promo: true,
+  ),
+  MenuItem(
+    id: 'm5',
+    name: 'Pisang Goreng Keju',
+    category: 'Camilan',
+    price: 12000,
+  ),
   MenuItem(id: 'm6', name: 'Es Teh Manis', category: 'Minuman', price: 5000),
-  MenuItem(id: 'm7', name: 'Kopi Susu Gula Aren', category: 'Minuman', price: 12000),
-  MenuItem(id: 'm8', name: 'Paket Hemat Ayam + Es Teh', category: 'Paket Hemat', price: 23000, promo: true),
+  MenuItem(
+    id: 'm7',
+    name: 'Kopi Susu Gula Aren',
+    category: 'Minuman',
+    price: 12000,
+  ),
+  MenuItem(
+    id: 'm8',
+    name: 'Paket Hemat Ayam + Es Teh',
+    category: 'Paket Hemat',
+    price: 23000,
+    promo: true,
+  ),
 ];
 
 /// Exactly 200 characters. Test 5.
@@ -115,7 +148,13 @@ const String kLongName =
     'dan Taburan Bawang Goreng Renyah Khas Kota Makassar Sulsel';
 
 const List<MenuItem> kLongNameMenu = [
-  MenuItem(id: 'long', name: kLongName, category: 'Makanan', price: 45000, promo: true),
+  MenuItem(
+    id: 'long',
+    name: kLongName,
+    category: 'Makanan',
+    price: 45000,
+    promo: true,
+  ),
   ...kMenu,
 ];
 
@@ -154,13 +193,21 @@ abstract final class AppTheme {
   static ThemeData _build(Brightness brightness) {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: _seed, brightness: brightness),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _seed,
+        brightness: brightness,
+      ),
     );
   }
 }
 
 /// 18000 → 'Rp 18.000'
-String rupiah(int value) {
+String rupiah(
+  int value, {
+  required int maxLines,
+  TextStyle? style,
+  required TextOverflow overflow,
+}) {
   final digits = value.toString();
   final out = StringBuffer();
   for (var i = 0; i < digits.length; i++) {
@@ -171,12 +218,12 @@ String rupiah(int value) {
 }
 
 IconData iconFor(String category) => switch (category) {
-      'Makanan' => Icons.rice_bowl,
-      'Minuman' => Icons.local_cafe,
-      'Camilan' => Icons.cookie,
-      'Paket Hemat' => Icons.lunch_dining,
-      _ => Icons.restaurant,
-    };
+  'Makanan' => Icons.rice_bowl,
+  'Minuman' => Icons.local_cafe,
+  'Camilan' => Icons.cookie,
+  'Paket Hemat' => Icons.lunch_dining,
+  _ => Icons.restaurant,
+};
 
 class Lab04App extends StatelessWidget {
   const Lab04App({
@@ -197,8 +244,9 @@ class Lab04App extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
       // Lets you drag horizontal lists with a mouse in Chrome or on desktop.
-      scrollBehavior: const MaterialScrollBehavior()
-          .copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: PointerDeviceKind.values.toSet(),
+      ),
       home: MenuScreen(items: items),
     );
   }
@@ -221,17 +269,25 @@ class _MenuScreenState extends State<MenuScreen> {
   String _query = '';
   String _category = kCategories.first;
   final Map<String, int> _qty = {};
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<MenuItem> get _visible => widget.items.where((item) {
-        final matchesQuery =
-            _query.isEmpty || item.name.toLowerCase().contains(_query.toLowerCase());
-        final matchesCategory = switch (_category) {
-          'Semua' => true,
-          'Promo' => item.promo,
-          _ => item.category == _category,
-        };
-        return matchesQuery && matchesCategory;
-      }).toList();
+    final matchesQuery =
+        _query.isEmpty ||
+        item.name.toLowerCase().contains(_query.toLowerCase());
+    final matchesCategory = switch (_category) {
+      'Semua' => true,
+      'Promo' => item.promo,
+      _ => item.category == _category,
+    };
+    return matchesQuery && matchesCategory;
+  }).toList();
 
   int get _count => _qty.values.fold(0, (sum, n) => sum + n);
 
@@ -248,69 +304,185 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   void _order() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pesanan dikirim: $_count item')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Pesanan dikirim: $_count item')));
     setState(() => _qty.clear());
+  }
+
+  void _resetFilters() {
+    _searchController.clear();
+    setState(() {
+      _query = '';
+      _category = kCategories.first;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final visible = _visible;
     final promos = widget.items.where((item) => item.promo).toList();
-    final isTablet = MediaQuery.sizeOf(context).width > 600;
+    final isTablet = MediaQuery.sizeOf(context).width > kTabletBreakpoint;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Menu')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const StoreHeader(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-            child: SearchBar(
-              key: const Key('search-field'),
-              hintText: 'Cari menu…',
-              leading: const Icon(Icons.search),
-              onChanged: (value) => setState(() => _query = value),
-            ),
-          ),
-          const SizedBox(height: Gap.sm),
-          CategoryBar(
-            selected: _category,
-            onSelected: (category) => setState(() => _category = category),
-          ),
-          PromoStrip(first: promos[0], second: promos[1]),
-          Expanded(
-            child: isTablet
-                ? GridView.count(
-                    crossAxisCount: 4,
-                    padding: const EdgeInsets.all(Gap.md),
-                    mainAxisSpacing: Gap.md,
-                    crossAxisSpacing: Gap.md,
-                    children: [
-                      for (final item in visible)
-                        MenuCard(
-                          item: item,
-                          quantity: _qty[item.id] ?? 0,
-                          onAdd: () => _add(item),
-                        ),
-                    ],
-                  )
-                : ListView(
-                    children: [
-                      for (final item in visible)
-                        MenuTile(
-                          item: item,
-                          quantity: _qty[item.id] ?? 0,
-                          onAdd: () => _add(item),
-                        ),
-                    ],
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= kTabletBreakpoint;
+            return CustomScrollView(
+              slivers: [
+                const SliverToBoxAdapter(child: StoreHeader()),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+                    child: SearchBar(
+                      key: const Key('search-field'),
+                      controller: _searchController,
+                      hintText: 'Cari menu…',
+                      leading: const Icon(Icons.search),
+                      onChanged: (value) => setState(() => _query = value),
+                    ),
                   ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: Gap.sm)),
+                SliverToBoxAdapter(
+                  child: CategoryBar(
+                    selected: _category,
+                    onSelected: (category) =>
+                        setState(() => _category = category),
+                  ),
+                ),
+                if (promos.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: PromoStrip(promos: promos.take(2).toList()),
+                  ),
+                if (visible.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: EmptyState(
+                        key: const Key('empty-state'),
+                        icon: widget.items.isEmpty
+                            ? Icons.restaurant_menu
+                            : Icons.search_off,
+                        title: widget.items.isEmpty
+                            ? 'Belum ada menu'
+                            : 'Menu tidak ditemukan',
+                        message: widget.items.isEmpty
+                            ? 'Menu akan muncul di sini setelah warung menambahkannya.'
+                            : 'Coba kata kunci atau kategori lain.',
+                        actionLabel: widget.items.isEmpty
+                            ? 'Muat ulang'
+                            : 'Reset filter',
+                        onAction: _resetFilters,
+                      ),
+                    ),
+                  )
+                else if (isWide)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(Gap.md),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 240,
+                            mainAxisSpacing: Gap.md,
+                            crossAxisSpacing: Gap.md,
+                            childAspectRatio: 0.8,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final item = visible[index];
+                        return MenuCard(
+                          key: ValueKey(item.id),
+                          item: item,
+                          quantity: _qty[item.id] ?? 0,
+                          onAdd: () => _add(item),
+                        );
+                      }, childCount: visible.length),
+                    ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final item = visible[index];
+                      return MenuTile(
+                        key: ValueKey(item.id),
+                        item: item,
+                        quantity: _qty[item.id] ?? 0,
+                        onAdd: () => _add(item),
+                      );
+                    }, childCount: visible.length),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+      bottomNavigationBar: CartBar(
+        count: _count,
+        total: _total,
+        onOrder: _order,
+      ),
+    );
+  }
+}
+
+// dihapus saya ganti  sama safe area body: Column
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(Gap.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 64, color: cs.onSurfaceVariant),
+          const SizedBox(height: Gap.md),
+          Text(
+            title,
+            style: text.titleMedium,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Gap.xs),
+          Text(
+            message,
+            style: text.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Gap.md),
+          FilledButton.tonal(
+            onPressed: onAction,
+            child: Text(
+              actionLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
-      bottomNavigationBar: CartBar(count: _count, total: _total, onOrder: _order),
     );
   }
 }
@@ -326,6 +498,7 @@ class StoreHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(Gap.md),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 48,
@@ -337,20 +510,34 @@ class StoreHeader extends StatelessWidget {
             child: Icon(Icons.storefront, color: cs.onPrimaryContainer),
           ),
           const SizedBox(width: Gap.md),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(kStoreName, style: text.titleMedium),
-              Text(
-                kStoreHours,
-                style: text.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(kStoreName,
+                    style: text.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+                Text(kStoreHours,
+                    style: text.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: Gap.xs),
+                Row(
+                  children: [
+                    Icon(Icons.star_rounded, size: 20, color: cs.tertiary),
+                    const SizedBox(width: Gap.xs),
+                    Flexible(
+                      child: Text('4.8 · 1,2 rb ulasan',
+                          style: text.labelMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: Gap.md),
-          Icon(Icons.star_rounded, size: 20, color: cs.tertiary),
-          const SizedBox(width: Gap.xs),
-          Text('4.8 · 1,2 rb ulasan', style: text.labelMedium),
         ],
       ),
     );
@@ -358,20 +545,29 @@ class StoreHeader extends StatelessWidget {
 }
 
 class CategoryBar extends StatelessWidget {
-  const CategoryBar({super.key, required this.selected, required this.onSelected});
+  const CategoryBar({
+    super.key,
+    required this.selected,
+    required this.onSelected,
+  });
 
   final String selected;
   final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: Gap.md),
       child: Row(
         children: [
           for (final category in kCategories) ...[
             ChoiceChip(
-              label: Text(category),
+              label: Text(
+                category,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               selected: category == selected,
               onSelected: (_) => onSelected(category),
             ),
@@ -384,21 +580,24 @@ class CategoryBar extends StatelessWidget {
 }
 
 class PromoStrip extends StatelessWidget {
-  const PromoStrip({super.key, required this.first, required this.second});
+  const PromoStrip({super.key, required this.promos});
 
-  final MenuItem first;
-  final MenuItem second;
+  final List<MenuItem> promos;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(Gap.md),
-      child: Row(
-        children: [
-          PromoCard(item: first),
-          const SizedBox(width: Gap.md),
-          PromoCard(item: second),
-        ],
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < promos.length; i++) ...[
+              if (i > 0) const SizedBox(width: Gap.md),
+              Expanded(child: PromoCard(item: promos[i])),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -414,39 +613,44 @@ class PromoCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
-    return SizedBox(
-      width: 200,
-      height: 150,
-      child: Card(
-        margin: EdgeInsets.zero,
-        color: cs.tertiaryContainer,
-        child: Padding(
-          padding: const EdgeInsets.all(Gap.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'PROMO HARI INI',
-                style: text.labelSmall?.copyWith(
-                  color: cs.onTertiaryContainer,
-                  letterSpacing: 1.2,
-                ),
+    return Card(
+      margin: EdgeInsets.zero,
+      color: cs.tertiaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(Gap.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'PROMO HARI INI',
+              style: text.labelSmall?.copyWith(
+                color: cs.onTertiaryContainer,
+                letterSpacing: 1.2,
               ),
-              const SizedBox(height: Gap.xs),
-              Text(
-                item.name,
-                style: text.titleMedium?.copyWith(color: cs.onTertiaryContainer),
-              ),
-              const Spacer(),
-              Text(
-                rupiah(item.price),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: Gap.xs),
+            Text(
+              item.name,
+              style: text.titleMedium?.copyWith(color: cs.onTertiaryContainer),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: Gap.sm),
+            const Spacer(),
+            Text(
+              rupiah(
+                item.price,
                 style: text.titleSmall?.copyWith(
                   color: cs.onTertiaryContainer,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -473,25 +677,50 @@ class MenuTile extends StatelessWidget {
     return InkWell(
       onTap: onAdd,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Gap.md, vertical: Gap.sm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Gap.md,
+          vertical: Gap.sm,
+        ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 22,
               backgroundColor: cs.secondaryContainer,
-              child: Icon(iconFor(item.category), color: cs.onSecondaryContainer),
+              child: Icon(
+                iconFor(item.category),
+                color: cs.onSecondaryContainer,
+              ),
             ),
             const SizedBox(width: Gap.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name, style: text.titleMedium),
-                if (item.promo)
-                  Text('Promo', style: text.labelSmall?.copyWith(color: cs.primary)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: text.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Wrap(
+                    spacing: Gap.sm,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        rupiah(item.price, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.labelLarge),
+                      ),
+                      if (item.promo)
+                        Text(
+                          'Promo',
+                          style: text.labelSmall?.copyWith(color: cs.primary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const Spacer(),
-            Text(rupiah(item.price), style: text.labelLarge),
             IconButton(
               tooltip: 'Tambah',
               onPressed: onAdd,
@@ -529,31 +758,46 @@ class MenuCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(Gap.md),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 110,
-              decoration: BoxDecoration(
-                color: cs.secondaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                iconFor(item.category),
-                size: 40,
-                color: cs.onSecondaryContainer,
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cs.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(Gap.xs),
+                    child: Icon(
+                      iconFor(item.category),
+                      size: 40,
+                      color: cs.onSecondaryContainer,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: Gap.sm),
-            Text(item.name, style: text.titleSmall),
+            Text(
+              item.name,
+              style: text.titleSmall,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: Gap.xs),
-            Text(rupiah(item.price), style: text.bodyMedium),
+            Text(
+              rupiah(item.price, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
             const SizedBox(height: Gap.sm),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonal(
-                onPressed: onAdd,
-                child: Text(quantity > 0 ? 'Tambah ($quantity)' : 'Tambah'),
+            FilledButton.tonal(
+              onPressed: onAdd,
+              child: Text(
+                quantity > 0 ? 'Tambah ($quantity)' : 'Tambah',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -580,28 +824,36 @@ class CartBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+    return Material(
       color: cs.surfaceContainerHigh,
-      child: Row(
-        children: [
-          Icon(Icons.shopping_bag_outlined, color: cs.onSurfaceVariant),
-          const SizedBox(width: Gap.sm),
-          Text(
-            'Pesanan: $count item · Total ${rupiah(total)}',
-            style: text.titleSmall,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Gap.md,
+            vertical: Gap.sm,
           ),
-          const SizedBox(width: Gap.md),
-          SizedBox(
-            width: 160,
-            child: FilledButton(
-              key: const Key('order-button'),
-              onPressed: count == 0 ? null : onOrder,
-              child: const Text('Pesan'),
-            ),
+          child: Row(
+            children: [
+              Icon(Icons.shopping_bag_outlined, color: cs.onSurfaceVariant),
+              const SizedBox(width: Gap.sm),
+              Expanded(
+                child: Text(
+                  'Pesanan: $count item · Total ${rupiah(total, style: text.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis)}',
+                ),
+              ),
+              const SizedBox(width: Gap.md),
+              FilledButton(
+                key: const Key('order-button'),
+                onPressed: count == 0 ? null : onOrder,
+                child: const Text(
+                  'Pesan',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -637,11 +889,11 @@ enum _Data {
   final String label;
 
   List<MenuItem> get items => switch (this) {
-        _Data.normal => kMenu,
-        _Data.longName => kLongNameMenu,
-        _Data.empty => const <MenuItem>[],
-        _Data.big => kBigMenu,
-      };
+    _Data.normal => kMenu,
+    _Data.longName => kLongNameMenu,
+    _Data.empty => const <MenuItem>[],
+    _Data.big => kBigMenu,
+  };
 }
 
 class LabHarness extends StatefulWidget {
@@ -666,7 +918,10 @@ class _LabHarnessState extends State<LabHarness> {
     return MaterialApp(
       title: 'Lab 04 · device harness',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xFF455A64)),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0xFF455A64),
+      ),
       home: Builder(
         builder: (context) => Scaffold(
           body: SafeArea(
@@ -771,8 +1026,8 @@ class _LabHarnessState extends State<LabHarness> {
     final padding = !_insets
         ? EdgeInsets.zero
         : _landscape
-            ? const EdgeInsets.only(left: 32, bottom: 20)
-            : const EdgeInsets.only(top: 32, bottom: 20);
+        ? const EdgeInsets.only(left: 32, bottom: 20)
+        : const EdgeInsets.only(top: 32, bottom: 20);
     // While the keyboard is up, phones report no bottom padding.
     final safe = keyboard > 0 ? padding.copyWith(bottom: 0) : padding;
     final media = MediaQuery.of(context).copyWith(
@@ -834,7 +1089,9 @@ class _LabHarnessState extends State<LabHarness> {
                             right: 0,
                             bottom: 0,
                             height: safe.bottom,
-                            child: const IgnorePointer(child: _FakeGestureBar()),
+                            child: const IgnorePointer(
+                              child: _FakeGestureBar(),
+                            ),
                           ),
                         if (keyboard > 0)
                           Positioned(
@@ -868,7 +1125,10 @@ class _FakeStatusBar extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('9:41', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            child: Text(
+              '9:41',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
           ),
         ),
         Center(
@@ -921,7 +1181,8 @@ class _FakeKeyboard extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    for (final letter in row.split('')) Expanded(child: _Key(letter)),
+                    for (final letter in row.split(''))
+                      Expanded(child: _Key(letter)),
                   ],
                 ),
               ),
